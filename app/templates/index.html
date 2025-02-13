@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Student Attendance</title>
+</head>
+<body class="bg-gray-100 p-10">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">Student Attendance Tracking System</h2>
+
+        <input id="studentName" type="text" placeholder="Enter Student Name" class="border p-2 w-full mb-4">
+        <button onclick="registerStudent()" class="bg-blue-500 text-white px-4 py-2 rounded">Register Student</button>
+
+        <h3 class="text-xl mt-6">Attendance Records</h3>
+        <button onclick="fetchAttendance()" class="bg-green-500 text-white px-4 py-2 rounded my-2">Refresh</button>
+        <ul id="attendanceList" class="mt-4"></ul>
+    </div>
+
+    <script>
+        function registerStudent() {
+            let name = document.getElementById("studentName").value;
+            fetch("/register_student", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name })
+            }).then(() => alert("Student Registered!"));
+        }
+
+        function fetchAttendance() {
+            fetch("/get_attendance")
+                .then(res => res.json())
+                .then(data => {
+                    let list = document.getElementById("attendanceList");
+                    list.innerHTML = "";
+                    data.forEach(record => {
+                        let item = document.createElement("li");
+                        item.textContent = `${record.name} - ${record.date}`;
+                        list.appendChild(item);
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
