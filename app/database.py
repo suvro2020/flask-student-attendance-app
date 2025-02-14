@@ -1,7 +1,7 @@
 import mysql.connector
 import os
-import time
 
+# Fetch database credentials from environment variables
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "user": os.getenv("DB_USER", "root"),
@@ -9,20 +9,13 @@ DB_CONFIG = {
     "database": os.getenv("DB_NAME", "attendance_db")
 }
 
-def get_db_connection(retries=5, delay=5):
-    """Try to connect to MySQL with retries."""
-    for attempt in range(retries):
-        try:
-            conn = mysql.connector.connect(**DB_CONFIG)
-            print("Connected to MySQL successfully!")
-            return conn
-        except mysql.connector.Error as err:
-            print(f"Attempt {attempt+1}: MySQL connection failed ({err})")
-            time.sleep(delay)
-    raise Exception("Failed to connect to MySQL after multiple attempts.")
+def get_db_connection():
+    """Establish a database connection."""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    return conn
 
 def init_db():
-    """Initialize the database."""
+    """Initialize database and create tables if not exist."""
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -41,6 +34,7 @@ def init_db():
         id INT AUTO_INCREMENT PRIMARY KEY,
         student_id INT NOT NULL,
         date DATE NOT NULL,
+        status ENUM('Present', 'Absent') DEFAULT 'Present',
         FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
     )
     """)

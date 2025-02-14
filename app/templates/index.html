@@ -8,14 +8,16 @@
 </head>
 <body class="bg-gray-100 p-10">
     <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-4">Student Attendance Tracking System</h2>
+        <h2 class="text-2xl font-bold mb-4">Student Attendance System</h2>
 
         <input id="studentName" type="text" placeholder="Enter Student Name" class="border p-2 w-full mb-4">
         <button onclick="registerStudent()" class="bg-blue-500 text-white px-4 py-2 rounded">Register Student</button>
 
+        <p id="successMessage" class="text-green-500 mt-4 hidden"></p>
+
         <h3 class="text-xl mt-6">Attendance Records</h3>
         <button onclick="fetchAttendance()" class="bg-green-500 text-white px-4 py-2 rounded my-2">Refresh</button>
-        <ul id="attendanceList" class="mt-4"></ul>
+        <div id="attendanceTable"></div>
     </div>
 
     <script>
@@ -25,21 +27,35 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name })
-            }).then(() => alert("Student Registered!"));
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("successMessage").textContent = data.message;
+                document.getElementById("successMessage").classList.remove("hidden");
+                document.getElementById("studentName").value = "";
+                fetchAttendance();
+            });
         }
 
         function fetchAttendance() {
             fetch("/get_attendance")
-                .then(res => res.json())
-                .then(data => {
-                    let list = document.getElementById("attendanceList");
-                    list.innerHTML = "";
-                    data.forEach(record => {
-                        let item = document.createElement("li");
-                        item.textContent = `${record.name} - ${record.date}`;
-                        list.appendChild(item);
-                    });
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("attendanceTable").innerHTML = html;
                 });
+        }
+
+        function markAbsent(studentId) {
+            fetch("/mark_absent", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ student_id: studentId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchAttendance();
+            });
         }
     </script>
 </body>

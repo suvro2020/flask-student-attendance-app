@@ -15,21 +15,24 @@ def register_student():
     if not name:
         return jsonify({"error": "Name is required"}), 400
 
-    add_student(name)
-    return jsonify({"message": "Student registered successfully"}), 201
+    student_id = add_student(name)
+    mark_attendance(student_id, str(date.today()), "Present")
 
-@app.route('/mark_attendance', methods=['POST'])
-def mark_attendance_route():
+    return jsonify({"message": f"Attendance recorded for {name}!"})
+
+@app.route('/mark_absent', methods=['POST'])
+def mark_absent():
     data = request.get_json()
     student_id = data.get("student_id")
 
     if not student_id:
         return jsonify({"error": "Student ID is required"}), 400
 
-    mark_attendance(student_id, str(date.today()))
-    return jsonify({"message": "Attendance marked successfully"}), 201
+    mark_attendance(student_id, str(date.today()), "Absent")
+
+    return jsonify({"message": "Student marked as Absent!"})
 
 @app.route('/get_attendance', methods=['GET'])
 def fetch_attendance():
     records = get_attendance()
-    return jsonify(records)
+    return render_template("attendance.html", records=records)
