@@ -35,3 +35,40 @@ def get_attendance():
     cursor.close()
     conn.close()
     return records
+
+def get_attendance_stats(start_date, end_date):
+    """Fetch total Present vs Absent count for a date range."""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT status, COUNT(*) as count
+        FROM attendance
+        WHERE date BETWEEN %s AND %s
+        GROUP BY status
+    """, (start_date, end_date))
+
+    data = {row["status"]: row["count"] for row in cursor.fetchall()}
+    cursor.close()
+    conn.close()
+
+    return {"Present": data.get("Present", 0), "Absent": data.get("Absent", 0)}
+
+def get_student_attendance(name, start_date, end_date):
+    """Fetch Present vs Absent count for a particular student."""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT a.status, COUNT(*) as count
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE s.name = %s AND a.date BETWEEN %s AND %s
+        GROUP BY a.status
+    """, (name, start_date, end_date))
+
+    data = {row["status"]: row["count"] for row in cursor.fetchall()}
+    cursor.close()
+    conn.close()
+
+    return {"Student": name, "Present": data.get("Present", 0), "Absent": data.get("Absent", 0)}

@@ -1,7 +1,7 @@
 from flask import request, jsonify, render_template
 from app import app
-from app.models import add_student, mark_attendance, get_attendance
-from datetime import date
+from app.models import add_student, mark_attendance, get_attendance, get_attendance_stats, get_student_attendance
+from datetime import date, datetime
 
 @app.route('/')
 def home():
@@ -36,3 +36,20 @@ def mark_absent():
 def fetch_attendance():
     records = get_attendance()
     return render_template("attendance.html", records=records)
+
+@app.route('/analytics')
+def analytics_page():
+    return render_template("analytics.html")
+
+@app.route('/attendance_stats', methods=['GET'])
+def attendance_stats():
+    start_date = request.args.get('start_date', '2023-01-01')  # Default start date
+    end_date = request.args.get('end_date', datetime.today().strftime('%Y-%m-%d'))
+    student_name = request.args.get('student_name', None)  # Optional filter by student
+
+    if student_name:
+        stats = get_student_attendance(student_name, start_date, end_date)
+    else:
+        stats = get_attendance_stats(start_date, end_date)
+
+    return jsonify(stats)
