@@ -22,7 +22,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile  # 👈 Uses Multi-Stage Build
+      dockerfile: Dockerfile  # Uses Multi-Stage Build
     ports:
       - "5000:5000"
     depends_on:
