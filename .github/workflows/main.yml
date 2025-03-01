@@ -57,7 +57,8 @@ jobs:
             docker run -d --name flask-app -p 5000:5000 \
               -e DB_HOST=mysql-db \
               -e DB_USER=root \
-              -e DB_PASSWORD=rootpassword \
+              -e DB_PASSWORD=root \
               -e DB_NAME=attendance_db \
               ${{ secrets.DOCKER_USERNAME }}/flask-attendance-app
           EOF
+
