@@ -1,16 +1,16 @@
-name: CI/CD for Student Attendence App
+name: CI/CD for Flask App
 
 on:
   push:
     branches:
-      - main
+      - main  # Runs CI/CD when code is pushed to main branch
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1Checkout git repository
+      # Checkout the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
@@ -30,26 +30,34 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: build-and-push  # Ensure this runs after the build job
 
     steps:
       # Checkout Code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Set up SSH and Deploy to AWS EC2
+      # Set up AWS Credentials (Required if using AWS CLI)
+      - name: Configure AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+
+      # 3Deploy to AWS EC2 via SSH
       - name: Deploy to AWS EC2
         run: |
           echo "${{ secrets.AWS_KEY }}" > private_key.pem
           chmod 600 private_key.pem
           ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'EOF'
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/flask-attendance-app
             docker stop flask-app || true
             docker rm flask-app || true
             docker run -d --name flask-app -p 5000:5000 \
               -e DB_HOST=mysql-db \
               -e DB_USER=root \
-              -e DB_PASSWORD=root \
+              -e DB_PASSWORD=rootpassword \
               -e DB_NAME=attendance_db \
               ${{ secrets.DOCKER_USERNAME }}/flask-attendance-app
           EOF
